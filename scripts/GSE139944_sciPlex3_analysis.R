@@ -73,7 +73,7 @@ filt.col.data <- rbind(col.data[col.data$vehicle, ],
 # Filter for genes and cells of interest
 filt.counts <- as.data.frame(as.matrix(counts[which(rownames(counts) %in% proteo.genes),
                                               which(colnames(counts) %in% filt.col.data$product_dose_rep)]))
-
+ 
 # Format row labels 
 rownames(filt.counts) <- row.data[match(rownames(filt.counts), row.data$id), 'gene_short_name']
 
