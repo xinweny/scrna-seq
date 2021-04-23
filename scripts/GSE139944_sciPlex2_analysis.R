@@ -39,8 +39,10 @@ counts <- exprs(cds)
 col.data <- data.frame(pData(cds))
 
 #### Normalisation ####
-# Log normalisation
-counts <- normalized_counts(cds, norm_method="log", pseudocount=pscount)
+# Normalise and aggregate
+counts <- aggregate_gene_expression(cds, 
+                                    cell_group_df=col.data[, c('Cell', 'top_oligo')], 
+                                    norm="size_only")
 
 # Format gene names in count matrix
 rownames(counts) <- gsub("\\.[0-9_A-Z]+$", "", rownames(counts))
@@ -55,31 +57,45 @@ filt.col.data <- col.data[grep(paste(inhibitors, sep="|", collapse="|"), col.dat
 
 # Filter for genes and cells of interest
 filt.counts <- as.data.frame(as.matrix(counts[which(rownames(counts) %in% proteo.genes),
-                             which(colnames(counts) %in% filt.col.data$Cell)]))
-
-# Collapse matrix by average expression per treatment per well
-agg.filt.counts <- aggregate_cols(filt.counts, filt.col.data)
+                             which(colnames(counts) %in% filt.col.data$top_oligo)]))
 
 #### Visualisation ####
+# Initialisation of colour labeling
+inh.cols <- c('red', 'blue', 'green')
+col.cols <- rep('black', ncol(filt.counts))
+inh.col.strs <- c()
+
+# Colour column labels depending on the inhibitor target
+inh.col.list <- vector(mode="list", length=length(inhibitors))
+names(inh.col.list) <- inhibitors
+
+for (i in 1:length(inhibitors)) {
+  col.cols[colnames(filt.counts) %in% filt.col.data[grep(inhibitors[i], filt.col.data$top_oligo), 'top_oligo']] <- inh.cols[i]
+  inh.col.list[[inhibitors[i]]] <- inh.cols[i]
+  inh.col.strs[i] <- glue("{inhibitors[i]} ({inh.cols[i]})")
+}
+
+
 # Plot heatmap
-png(file="processed/GSE139944/sciPlex2_proteostasis_heatmap_withinhibitors.png", 
+png(file="processed/GSE139944/sciPlex2_proteostasis_heatmap_inhibitors.png", 
     width=6000, height=4000, res=300)
-heatmap.2(log2(agg.filt.counts + 1),
+heatmap.2(log2(as.matrix(filt.counts) + pscount),
           Rowv=TRUE,
           Colv=TRUE,
-          main=glue("Log mean counts per cell of CORE proteostasis genes (n={nrow(agg.filt.counts)}) in A549 cells
-                    treated with different doses of {paste(inhibitors, sep=', ', collapse=', ')}
-                    across scRNA-seq wells (N={ncol(agg.filt.counts)})"),
+          main=glue("Log mean UMI counts per cell of CORE proteostasis genes (n={nrow(filt.counts)}) in A549 cells
+                    treated with different doses of {paste(inh.col.strs, sep=', ', collapse=', ')}
+                    across scRNA-seq wells (N={ncol(filt.counts)})"),
           dendrogram="both",
           scale="none",
           col=magma(299),
-          labCol=colnames(agg.filt.counts), labRow=FALSE,
+          labCol=colnames(filt.counts), labRow=FALSE,
+          colCol=col.cols,
           srtCol=45,
           trace="none",
           key=TRUE, 
           density.info="none",
           keysize=0.5,
           margins=c(5, 2),
-          key.xlab="Log mean counts per cell")
+          key.xlab=glue("log2(Mean UMI counts per cell + {pscount})"))
 dev.off()
 
