@@ -44,6 +44,9 @@ col.data$cell_freq <- cell.freq[match(col.data$cell_product_dose, rownames(cell.
 col.data$cell_product_dose <- paste0(col.data$cell_product_dose, " (", col.data$cell_freq, ")")
 
 #### Filtering ####
+# Keep valid cells
+col.data <- col.data[scan("./processed/GSE139944/sciPlex3_valid_cells.tsv", character(), quote=""), ]
+
 # Get list of CORE proteostasis genes for human/mouse
 proteo.genes <- proteo.list[proteo.list$CORE == "CORE", c("Human_gene_ID")]
 
@@ -54,7 +57,7 @@ filt.col.data <- with(col.data,
                                grepl(paste(paste("^", doses, "$", sep=""), sep="|", collapse="|"), col.data$dose), ])
 
 filt.counts <- counts(cds)[grep("ENSG", rownames(counts(cds))), 
-                           rownames(col.data) %in% rownames(filt.col.data)]
+                           rownames(filt.col.data)]
 
 # Filter out mouse genes and non-targets
 filt.cds <- new_cell_data_set(expression_data=filt.counts,
@@ -88,7 +91,7 @@ sample.metadata <- data.frame(row.names=agg.samples,
                               n_cells=as.vector(cell.freq[match(agg.samples, names(cell.freq))]))
 
 # Plot and save UMAP
-png(file=glue("processed/GSE139944/umap/sciPlex3_UMAP_{paste(cells, sep='-', collapse='-')}_{paste(treatments[!treatments %in% c('Vehicle')], sep='-', collapse='-')}.png"), 
+png(file=glue("processed/GSE139944/umap/sciPlex3_UMAP_{paste(cells, sep='-', collapse='-')}_{paste(treatments[!treatments %in% c('Vehicle')], sep='-', collapse='-')}{if (include.vehicle) '-Vehicle' else ''}.png"), 
     width=3000, height=2000, res=300)
 plot_cells(filt.cds,
            color_cells_by="cell_product_dose",

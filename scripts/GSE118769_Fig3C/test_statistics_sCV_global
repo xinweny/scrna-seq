@@ -1,0 +1,131 @@
+> neg_counts
+
+(-0.5,-0.45] (-0.45,-0.4] (-0.4,-0.35] (-0.35,-0.3] (-0.3,-0.25] (-0.25,-0.2] 
+         191          150          166          134          121          126 
+ (-0.2,-0.1]   (-0.1,0.1]    (0.1,0.3]    (0.3,0.9] 
+         178          301          159          168 
+> pos_counts
+
+(-0.5,-0.45] (-0.45,-0.4] (-0.4,-0.35] (-0.35,-0.3] (-0.3,-0.25] (-0.25,-0.2] 
+         147          148          121          134          112          102 
+ (-0.2,-0.1]   (-0.1,0.1]    (0.1,0.3]    (0.3,0.9] 
+         159          269          162          148 
+
+# Comparison os squared CV values across bins
+
+(-0.5,-0.45]
+> ks.test(log10(as.numeric(neg[1:neg_counts[1],2])),log10(as.numeric(pos[1:pos_counts[1],2])))
+
+	Two-sample Kolmogorov-Smirnov test
+
+data:  log10(as.numeric(neg[1:neg_counts[1], 2])) and log10(as.numeric(pos[1:pos_counts[1], 2]))
+D = 0.25897, p-value = 2.899e-05
+alternative hypothesis: two-sided
+
+(-0.45,-0.4]
+> ks.test(log10(as.numeric(neg[neg_counts[1]:neg_counts[2],2])),log10(as.numeric(pos[pos_counts[1]:pos_counts[2],2])))
+
+	Two-sample Kolmogorov-Smirnov test
+
+data:  log10(as.numeric(neg[neg_counts[1]:neg_counts[2], 2])) and log10(as.numeric(pos[pos_counts[1]:pos_counts[2], 2]))
+D = 0.33019, p-value = 1.581e-07
+alternative hypothesis: two-sided
+
+(-0.4,-0.35]
+> ks.test(log10(as.numeric(neg[neg_counts[2]:neg_counts[3],2])),log10(as.numeric(pos[pos_counts[2]:pos_counts[3],2])))
+
+	Two-sample Kolmogorov-Smirnov test
+
+data:  log10(as.numeric(neg[neg_counts[2]:neg_counts[3], 2])) and log10(as.numeric(pos[pos_counts[2]:pos_counts[3], 2]))
+D = 0.22136, p-value = 0.001998
+alternative hypothesis: two-sided
+
+(-0.35,-0.3]
+> ks.test(log10(as.numeric(neg[neg_counts[3]:neg_counts[4],2])),log10(as.numeric(pos[pos_counts[3]:pos_counts[4],2])))
+
+	Two-sample Kolmogorov-Smirnov test
+
+data:  log10(as.numeric(neg[neg_counts[3]:neg_counts[4], 2])) and log10(as.numeric(pos[pos_counts[3]:pos_counts[4], 2]))
+D = 0.2, p-value = 0.009033
+alternative hypothesis: two-sided
+
+Warning message:
+In ks.test(log10(as.numeric(neg[neg_counts[3]:neg_counts[4], 2])),  :
+  p-value will be approximate in the presence of ties
+ 
+
+(-0.3,-0.25]
+> ks.test(log10(as.numeric(neg[neg_counts[4]:neg_counts[5],2])),log10(as.numeric(pos[pos_counts[4]:pos_counts[5],2])))
+
+	Two-sample Kolmogorov-Smirnov test
+
+data:  log10(as.numeric(neg[neg_counts[4]:neg_counts[5], 2])) and log10(as.numeric(pos[pos_counts[4]:pos_counts[5], 2]))
+D = 0.19723, p-value = 0.02084
+alternative hypothesis: two-sided
+
+Warning message:
+In ks.test(log10(as.numeric(neg[neg_counts[4]:neg_counts[5], 2])),  :
+  p-value will be approximate in the presence of ties
+
+(-0.25,-0.2]
+> ks.test(log10(as.numeric(neg[neg_counts[5]:neg_counts[6],2])),log10(as.numeric(pos[pos_counts[5]:pos_counts[6],2])))
+
+	Two-sample Kolmogorov-Smirnov test
+
+data:  log10(as.numeric(neg[neg_counts[5]:neg_counts[6], 2])) and log10(as.numeric(pos[pos_counts[5]:pos_counts[6], 2]))
+D = 0.21956, p-value = 0.008312
+alternative hypothesis: two-sided
+
+Warning message:
+In ks.test(log10(as.numeric(neg[neg_counts[5]:neg_counts[6], 2])),  :
+  p-value will be approximate in the presence of ties
+
+(-0.2,-0.1]
+> ks.test(log10(as.numeric(neg[neg_counts[6]:neg_counts[7],2])),log10(as.numeric(pos[pos_counts[6]:pos_counts[7],2])))
+
+	Two-sample Kolmogorov-Smirnov test
+
+data:  log10(as.numeric(neg[neg_counts[6]:neg_counts[7], 2])) and log10(as.numeric(pos[pos_counts[6]:pos_counts[7], 2]))
+D = 0.23097, p-value = 0.0002434
+alternative hypothesis: two-sided
+
+(-0.1,0.1]
+> ks.test(log10(as.numeric(neg[neg_counts[7]:neg_counts[8],2])),log10(as.numeric(pos[pos_counts[7]:pos_counts[8],2])))
+
+	Two-sample Kolmogorov-Smirnov test
+
+data:  log10(as.numeric(neg[neg_counts[7]:neg_counts[8], 2])) and log10(as.numeric(pos[pos_counts[7]:pos_counts[8], 2]))
+D = 0.17878, p-value = 0.0002205
+alternative hypothesis: two-sided
+
+Warning message:
+In ks.test(log10(as.numeric(neg[neg_counts[7]:neg_counts[8], 2])),  :
+  p-value will be approximate in the presence of ties
+
+(0.1,0.3]
+> ks.test(log10(as.numeric(neg[neg_counts[8]:neg_counts[9],2])),log10(as.numeric(pos[pos_counts[8]:pos_counts[9],2])))
+
+	Two-sample Kolmogorov-Smirnov test
+
+data:  log10(as.numeric(neg[neg_counts[8]:neg_counts[9], 2])) and log10(as.numeric(pos[pos_counts[8]:pos_counts[9], 2]))
+D = 0.24482, p-value = 0.0001251
+alternative hypothesis: two-sided
+
+(0.3,0.9]
+> ks.test(log10(as.numeric(neg[neg_counts[9]:neg_counts[10],2])),log10(as.numeric(pos[pos_counts[9]:pos_counts[10],2])))
+
+	Two-sample Kolmogorov-Smirnov test
+
+data:  log10(as.numeric(neg[neg_counts[9]:neg_counts[10], 2])) and log10(as.numeric(pos[pos_counts[9]:pos_counts[10], 2]))
+D = 0.22092, p-value = 0.0008794
+alternative hypothesis: two-sided
+
+Warning message:
+In ks.test(log10(as.numeric(neg[neg_counts[9]:neg_counts[10], 2])),  :
+  p-value will be approximate in the presence of ties
+
+
+
+
+
+

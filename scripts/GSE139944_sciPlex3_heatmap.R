@@ -34,6 +34,7 @@ pscount <- 1 # for log2 scaling
 cds <- readRDS(glue("./processed/GSE139944/GSM4150378_sciPlex3_{cell.type}_24hrs.RDS"))
 proteo.list <- read.csv("~/mrc/project/rna-seq/data/proteostasis_gene_list_16_03_21_NON_CORE0_CORE1.csv",
                         sep="\t")
+valid.cells <- scan("./processed/GSE139944/sciPlex3_valid_cells.tsv", character(), quote="")
 
 # Extract relevant data from CDS object
 col.data <- data.frame(pData(cds))
@@ -43,6 +44,9 @@ row.data <- data.frame(fData(cds))
 col.data$product_dose_rep <- paste0(col.data$product_name, "_", 
                                     col.data$dose, "_",
                                     col.data$replicate)
+
+# Keep valid cells
+col.data <- col.data[valid.cells, ]
 
 # Output frequency table of no. of cells per sample
 cell.freq <- table(col.data$product_dose_rep)

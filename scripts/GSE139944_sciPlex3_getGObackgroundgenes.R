@@ -49,6 +49,9 @@ col.data$cell_product_dose_rep <- paste0(col.data$cell_type, "_",
                                          col.data$replicate)
 
 #### Filtering ####
+# Keep valid cells
+col.data <- col.data[scan("./processed/GSE139944/sciPlex3_valid_cells.tsv", character(), quote=""), ]
+
 filt.col.data <- col.data[col.data$vehicle, ]
 
 control.counts <- counts(cds)[grep("ENSG", rownames(counts(cds))), 
@@ -85,7 +88,7 @@ mcols(dds)$basepairs <- gene.lengths[match(rownames(dds), gene.lengths$Geneid), 
 dds.fpkm <- fpkm(dds)
 
 # Save to output
-write.table(dds.fpkm, file=glue("processed/GSE139944/GO/GSE139944_sciPlex3_controlFPKM.txt"),
+write.table(dds.fpkm, file=glue("processed/GSE139944/GO/sciPlex3_controlFPKM.txt"),
             row.names=TRUE, col.names=TRUE, sep="\t", quote=FALSE)
 
 #### Filtering ####
@@ -94,7 +97,7 @@ fpkm.thresh <- 1
 
 for (i in 1:length(cell.types)) {
   dds.fpkm.filt <- dds.fpkm[which(rowMeans(as.data.frame(dds.fpkm) %>% dplyr::select(matches(cell.types[i]))) > fpkm.thresh), ]
-  fileConn <- file(glue("processed/GSE139944/GO/GSE139944_sciPlex3_BackgroundGeneSet_{cell.types[i]}.txt"))
+  fileConn <- file(glue("processed/GSE139944/GO/sciPlex3_BackgroundGeneSet_{cell.types[i]}.txt"))
   writeLines(rownames(dds.fpkm.filt), fileConn)
   close(fileConn)
 }
