@@ -33,15 +33,15 @@ inhibitors <- c("Luminespib", "Alvespimycin", "Tanespimycin",
 pscount <- 1 # for log2 scaling
 
 #### Load data ####
-cds <- readRDS("./processed/GSE139944/GSM4150378_sciPlex3_cds_all_cells.RDS")
-col.data <- read.csv("./processed/GSE139944/GSM4150378_sciPlex3_pData.txt", 
+cds <- readRDS("./GSE139944/data/GSM4150378_sciPlex3_cds_all_cells.RDS")
+col.data <- read.csv("./GSE139944/data/GSM4150378_sciPlex3_pData.txt", 
                      sep=" ", quote='"')
-proteo.list <- read.csv("~/mrc/project/rna-seq/data/proteostasis_gene_list_16_03_21_NON_CORE0_CORE1.csv",
+proteo.list <- read.csv("./GSE139944/data/proteostasis_gene_list_16_03_21_NON_CORE0_CORE1.csv",
                         sep="\t")
 
 #### Pre-filtering ####
 # Keep valid cells
-col.data <- col.data[scan("./processed/GSE139944/sciPlex3_valid_cells.tsv", character(), quote=""), ]
+col.data <- col.data[scan("./GSE139944/data/sciPlex3_valid_cells.tsv", character(), quote=""), ]
 
 # Get list of CORE proteostasis genes for human/mouse
 proteo.genes <- proteo.list[proteo.list$CORE == "CORE", c("Human_gene_ID")]
@@ -130,7 +130,7 @@ for (i in 1:length(targets)) {
 # Plot heatmap
 agg.matrix <- log2(as.matrix(agg.filt.counts) + pscount)
 
-png(file=glue("processed/GSE139944/sciPlex3_allcells_HSP90i_HDACi_proteostasis_heatmap.png"), 
+png(file=glue("./GSE139944/heatmap/sciPlex3_allcells_HSP90i_HDACi_proteostasis_heatmap.png"), 
     width=18000, height=24000, res=300)
 heatmap.2(agg.matrix,
           Rowv=TRUE,
@@ -166,7 +166,7 @@ agg.metadata <- data.frame(row.names=agg.samples,
 agg.metadata <- agg.metadata[match(rownames(t(agg.matrix)), rownames(agg.metadata)), ]
 
 # Plot PCA
-png(file=glue("processed/GSE139944/sciPlex3_PCA_HSP90i.png"), 
+png(file=glue("./GSE139944/PCA/sciPlex3_PCA_HSP90i.png"), 
     width=3000, height=2000, res=300)
 pca <- prcomp(t(agg.matrix))
 autoplot(pca, data=agg.metadata,

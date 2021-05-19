@@ -30,8 +30,8 @@ setwd("~/mrc/project/scrna-seq")
 pscount <- 1
 
 #### Load data ####
-cds <- readRDS("./processed/GSE139944/GSM4150377_sciPlex2_cds.RDS")
-proteo.list <- read.csv("~/mrc/project/rna-seq/data/proteostasis_gene_list_16_03_21_NON_CORE0_CORE1.csv",
+cds <- readRDS("./GSE139944/data/GSM4150377_sciPlex2_cds.RDS")
+proteo.list <- read.csv("./GSE139944/data/proteostasis_gene_list_16_03_21_NON_CORE0_CORE1.csv",
                         sep="\t")
 
 # Extract relevant data from S4 Object
@@ -77,7 +77,7 @@ for (i in 1:length(inhibitors)) {
 
 
 # Plot heatmap
-png(file="processed/GSE139944/sciPlex2_proteostasis_heatmap_inhibitors.png", 
+png(file="./GSE139944/heatmap/sciPlex2_proteostasis_heatmap_inhibitors.png", 
     width=6000, height=4000, res=300)
 heatmap.2(log2(as.matrix(filt.counts) + pscount),
           Rowv=TRUE,

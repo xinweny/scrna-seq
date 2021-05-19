@@ -8,10 +8,10 @@ library(ggplot2)
 setwd("~/mrc/project/scrna-seq")
 
 #### Load data ####
-cds <- readRDS(glue("./processed/GSE139944/GSM4150378_sciPlex3_cds_all_cells.RDS"))
-col.data <- read.csv("./processed/GSE139944/GSM4150378_sciPlex3_pData.txt", 
+cds <- readRDS(glue("./GSE139944/data/GSM4150378_sciPlex3_cds_all_cells.RDS"))
+col.data <- read.csv("./GSE139944/data/GSM4150378_sciPlex3_pData.txt", 
                      sep=" ", quote='"')
-proteo.list <- read.csv("~/mrc/project/rna-seq/data/proteostasis_gene_list_16_03_21_NON_CORE0_CORE1.csv",
+proteo.list <- read.csv("./GSE139944/data/proteostasis_gene_list_16_03_21_NON_CORE0_CORE1.csv",
                         sep="\t")
 
 #### Parameters ####
@@ -45,7 +45,7 @@ col.data$cell_product_dose <- paste0(col.data$cell_product_dose, " (", col.data$
 
 #### Filtering ####
 # Keep valid cells
-col.data <- col.data[scan("./processed/GSE139944/sciPlex3_valid_cells.tsv", character(), quote=""), ]
+col.data <- col.data[scan("./GSE139944/data/sciPlex3_valid_cells.tsv", character(), quote=""), ]
 
 # Get list of CORE proteostasis genes for human/mouse
 proteo.genes <- proteo.list[proteo.list$CORE == "CORE", c("Human_gene_ID")]
@@ -91,7 +91,7 @@ sample.metadata <- data.frame(row.names=agg.samples,
                               n_cells=as.vector(cell.freq[match(agg.samples, names(cell.freq))]))
 
 # Plot and save UMAP
-png(file=glue("processed/GSE139944/umap/sciPlex3_UMAP_{paste(cells, sep='-', collapse='-')}_{paste(treatments[!treatments %in% c('Vehicle')], sep='-', collapse='-')}{if (include.vehicle) '-Vehicle' else ''}.png"), 
+png(file=glue("./GSE139944/umap/sciPlex3_UMAP_{paste(cells, sep='-', collapse='-')}_{paste(treatments[!treatments %in% c('Vehicle')], sep='-', collapse='-')}{if (include.vehicle) '-Vehicle' else ''}.png"), 
     width=3000, height=2000, res=300)
 plot_cells(filt.cds,
            color_cells_by="cell_product_dose",

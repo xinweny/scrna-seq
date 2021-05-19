@@ -31,10 +31,10 @@ cell.type <- "A549" # K562, A549, MCF7
 pscount <- 1 # for log2 scaling
 
 #### Load data ####
-cds <- readRDS(glue("./processed/GSE139944/GSM4150378_sciPlex3_{cell.type}_24hrs.RDS"))
-proteo.list <- read.csv("~/mrc/project/rna-seq/data/proteostasis_gene_list_16_03_21_NON_CORE0_CORE1.csv",
+cds <- readRDS(glue("./GSE139944/data/GSM4150378_sciPlex3_{cell.type}_24hrs.RDS"))
+proteo.list <- read.csv("./GSE139944/data/proteostasis_gene_list_16_03_21_NON_CORE0_CORE1.csv",
                         sep="\t")
-valid.cells <- scan("./processed/GSE139944/sciPlex3_valid_cells.tsv", character(), quote="")
+valid.cells <- scan("./GSE139944/data/sciPlex3_valid_cells.tsv", character(), quote="")
 
 # Extract relevant data from CDS object
 col.data <- data.frame(pData(cds))
@@ -70,7 +70,8 @@ row.data$id <- gsub("\\.[0-9_A-Z]+$", "", rownames(row.data))
 proteo.genes <- proteo.list[proteo.list$CORE == "CORE", c("Human_gene_ID")]
 
 # Filter cell metadata for selected inhibitors
-inhibitors <- c("Luminespib", "Alvespimycin", "Tanespimycin", "Trichostatin A", "Belinostat", "Mocetinostat")
+inhibitors <- c("Luminespib", "Alvespimycin", "Tanespimycin", 
+                "Trichostatin A", "Belinostat", "Mocetinostat")
 filt.col.data <- rbind(col.data[col.data$vehicle, ], 
                        col.data[grep(paste(inhibitors, sep="|", collapse="|"), col.data$product_dose),])
 
@@ -98,7 +99,7 @@ for (i in 1:length(inhibitors)) {
 }
 
 # Plot heatmap
-png(file=glue("processed/GSE139944/sciPlex3_{cell.type}_HSP90i_HDACi_proteostasis_heatmap.png"), 
+png(file=glue("./GSE139944/heatmap/sciPlex3_{cell.type}_HSP90i_HDACi_proteostasis_heatmap.png"), 
     width=6000, height=24000, res=300)
 heatmap.2(log2(as.matrix(filt.counts) + pscount),
           Rowv=TRUE,
