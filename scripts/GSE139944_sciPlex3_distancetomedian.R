@@ -38,9 +38,9 @@ setwd("~/mrc/project/scrna-seq")
 inhibitors <- c("Luminespib", "Alvespimycin", "Tanespimycin")
 
 #### Load data ####
-col.data <- read.csv("./GSE139944/data/GSM4150378_sciPlex3_pData.txt", 
+col.data <- read.csv("./data/GSE139944/data/GSM4150378_sciPlex3_pData.txt", 
                      sep=" ", quote='"')
-protein.coding <- read.csv("./GSE139944/data/gencode.v27.transcripts.bed", 
+protein.coding <- read.csv("./data/GSE139944/data/gencode.v27.transcripts.bed", 
                            sep="\t", quote='', header=FALSE) %>% 
   filter(V9 == "protein_coding") %>%
   .$V7 %>% unique()
@@ -52,7 +52,7 @@ col.data$cell_product_dose <- paste0(col.data$cell_type, "_",
 
 #### Filtering ####
 # Keep valid cells
-col.data <- col.data[scan("./GSE139944/data/sciPlex3_valid_cells.tsv", character(), quote=""), ]
+col.data <- col.data[scan("./data/GSE139944/data/sciPlex3_valid_cells.tsv", character(), quote=""), ]
 
 # Filter cell metadata for selected inhibitors
 filt.col.data <- rbind(col.data[col.data$vehicle, ], 
@@ -63,9 +63,9 @@ cell.freq <- table(filt.col.data$cell_product_dose)
 filt.col.data$cell_freq <- cell.freq[match(filt.col.data$cell_product_dose, rownames(cell.freq))]
 
 # Filter out mouse genes and non-HSP90 targets
-filt.counts <- counts(readRDS("./GSE139944/data/GSM4150378_sciPlex3_cds_all_cells.RDS"))[protein.coding, rownames(filt.col.data)]
+filt.counts <- counts(readRDS("./data/GSE139944/data/GSM4150378_sciPlex3_cds_all_cells.RDS"))[protein.coding, rownames(filt.col.data)]
 
-filt.gene.data <- fData(readRDS("./GSE139944/data/GSM4150378_sciPlex3_cds_all_cells.RDS"))[protein.coding, ]
+filt.gene.data <- fData(readRDS("./data/GSE139944/data/GSM4150378_sciPlex3_cds_all_cells.RDS"))[protein.coding, ]
 
 rownames(filt.counts) <- filt.gene.data$gene_short_name
 rownames(filt.gene.data) <- filt.gene.data$gene_short_name
@@ -145,7 +145,7 @@ dm.df$sample <- factor(dm.df$sample, levels=c("Vehicle_0",
 
 #### Visualisation ####
 # Plot box plot for DM metric
-png(glue("./GSE139944/transcriptional_noise/sciPlex3_DM_{cell.type}_{product}.png"),
+png(glue("./data/GSE139944/transcriptional_noise/DM/sciPlex3_DM_{cell.type}_{product}.png"),
     width=3000, height=2000, res=300)
 ggplot(dm.df, aes(x=sample, y=dm)) +
   geom_boxplot() +
@@ -168,7 +168,7 @@ names(dm.dm) <- c("vehicle_dm", "treatment_dm", "gene_short_name")
 
 dm.dm$direction <- ifelse(dm.dm$treatment_dm > dm.dm$vehicle_dm, "UP", "DOWN")
 
-png(glue("./GSE139944/transcriptional_noise/sciPlex3_DMDM_{cell.type}_{product}_{dose}_vs_Vehicle_0.png"),
+png(glue("./data/GSE139944/transcriptional_noise/DMvsDM/sciPlex3_DMvsDM_{cell.type}_{product}_{dose}_vs_Vehicle_0.png"),
     width=3000, height=2000, res=300)
 dm.dm %>% drop_na(vehicle_dm, treatment_dm) %>%
   ggplot(aes(x=vehicle_dm, y=treatment_dm)) +

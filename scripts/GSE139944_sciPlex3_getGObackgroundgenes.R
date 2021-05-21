@@ -36,10 +36,10 @@ add_ensembl_symbol <- function (table) {
 }
 
 #### Load data ####
-cds <- readRDS("./GSE139944/data/GSM4150378_sciPlex3_cds_all_cells.RDS")
-col.data <- read.csv("GSE139944/data/GSM4150378_sciPlex3_pData.txt", 
+cds <- readRDS("./data/GSE139944/data/GSM4150378_sciPlex3_cds_all_cells.RDS")
+col.data <- read.csv("./data/GSE139944/data/GSM4150378_sciPlex3_pData.txt", 
                      sep=" ", quote='"')
-gene.lengths <- read.csv("./GSE139944/data/GRCh38_genelengths.txt",
+gene.lengths <- read.csv("./data/GSE139944/data/GRCh38_genelengths.txt",
                          sep="\t")
 
 # Format sample names
@@ -50,7 +50,7 @@ col.data$cell_product_dose_rep <- paste0(col.data$cell_type, "_",
 
 #### Filtering ####
 # Keep valid cells
-col.data <- col.data[scan("./GSE139944/data/sciPlex3_valid_cells.tsv", character(), quote=""), ]
+col.data <- col.data[scan("./data/GSE139944/data/sciPlex3_valid_cells.tsv", character(), quote=""), ]
 
 filt.col.data <- col.data[col.data$vehicle, ]
 
@@ -88,7 +88,7 @@ mcols(dds)$basepairs <- gene.lengths[match(rownames(dds), gene.lengths$Geneid), 
 dds.fpkm <- fpkm(dds)
 
 # Save to output
-write.table(dds.fpkm, file=glue("./GSE139944/GO/sciPlex3_controlFPKM.txt"),
+write.table(dds.fpkm, file=glue("./data/GSE139944/GO/sciPlex3_controlFPKM.txt"),
             row.names=TRUE, col.names=TRUE, sep="\t", quote=FALSE)
 
 #### Filtering ####
@@ -97,7 +97,7 @@ fpkm.thresh <- 1
 
 for (i in 1:length(cell.types)) {
   dds.fpkm.filt <- dds.fpkm[which(rowMeans(as.data.frame(dds.fpkm) %>% dplyr::select(matches(cell.types[i]))) > fpkm.thresh), ]
-  fileConn <- file(glue("./GSE139944/GO/gene_sets/sciPlex3_BackgroundGeneSet_{cell.types[i]}.txt"))
+  fileConn <- file(glue("./data/GSE139944/GO/gene_sets/sciPlex3_BackgroundGeneSet_{cell.types[i]}.txt"))
   writeLines(rownames(dds.fpkm.filt), fileConn)
   close(fileConn)
 }

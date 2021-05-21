@@ -55,13 +55,15 @@ cell.freq <- table(filt.col.data$cell_product_dose)
 filt.col.data$cell_freq <- cell.freq[match(filt.col.data$cell_product_dose, rownames(cell.freq))]
 
 #### Coefficient of variation ####
-# Parameters
 cell.type <- "K562"
 product <- "Alvespimycin"
-d <- c(10, 100, 1000, 10000)
-ncells.vehicle <- 250
+d <- 10000
 
-samples <- c("Vehicle_0", paste0(product, "_", d))
+ncells.vehicle <- 250
+nrep.vehicle <- 3
+
+vehicles <- paste0("Vehicle_0_rep", 1:nrep.vehicle)
+samples <- c(vehicles, paste0(product, "_", d))
 
 # Initialise data frame
 cv.df <- data.frame(mean_rpm=numeric(),
@@ -69,9 +71,8 @@ cv.df <- data.frame(mean_rpm=numeric(),
                     gene_short_name=character(),
                     sample=character())
 
-# Calculate mean RPM and CV for product across different doses
 for (i in 1:length(samples)) {
-  if (samples[i] == "Vehicle_0") {
+  if (grepl("Vehicle_0", samples[i])) {
     # Randomly sample vehicle cells
     sample.cells <- filt.col.data[filt.col.data$vehicle, ] %>%
       filter(cell_type == cell.type, dose == 0) %>%
@@ -79,7 +80,7 @@ for (i in 1:length(samples)) {
       rownames()
   } else {
     sample.cells <- filt.col.data[grep(product, filt.col.data$product_name), ] %>%
-      filter(cell_type == cell.type, dose == d[i - 1]) %>% 
+      filter(cell_type == cell.type, dose == d) %>% 
       rownames() 
   }
   
@@ -96,34 +97,11 @@ for (i in 1:length(samples)) {
 }
 
 # Get cell number information
-# ncells <- c(stack(cell.freq)[grep(glue("{cell.type}_Vehicle_0"), stack(cell.freq)$ind), "values"])
-ncells <- c(ncells.vehicle)
-
-for (i in 1:length(d)) {
-  ncells[i + 1] <- stack(cell.freq)[grep(glue("{cell.type}_{product}.+_{d[i]}$"), stack(cell.freq)$ind), "values"]
-}
-
+ncells <- c(rep(ncells.vehicle, nrep.vehicle),
+            stack(cell.freq)[grep(glue("{cell.type}_{product}.+_{d}$"), 
+                                  stack(cell.freq)$ind), 
+                             "values"])
 names(ncells) <- paste0(cell.type, "_", samples)
-
-# CV-mean RPM plot
-cv.rpm.plot.list <- list()
-for (i in 1:length(samples)) {
-  cv.rpm.plot <- ggplot(cv.df %>% filter(sample == samples[i]),
-                        aes(x=log10(mean_rpm + 1), y=cv)) +
-    geom_point(size=0.2) +
-    xlab("log10(Mean RPM + 1)") +
-    ylab("Coefficient of variation (CV)") +
-    labs(title=glue("{samples[i]} (nCells={ncells[[paste0(cell.type, '_', samples[i])]]}), N={cv.df %>% drop_na(cv) %>% filter(sample == samples[i]) %>% nrow()}"))
-  
-  cv.rpm.plot.list[[i]] <- cv.rpm.plot
-}
-ggsave(glue("./data/GSE139944/transcriptional_noise/CVvsRPM/sciPlex3_CVvsRPM_{cell.type}_{product}.png"),
-       grid.arrange(grobs=cv.rpm.plot.list, 
-                    ncol=2, nrow=3,
-                    top=textGrob(glue("Coefficient of variation (CV) vs. mean RPM of protein coding genes
-                                      in {cell.type} cells for {product} across different doses and Vehicle"),
-                                 gp=gpar(fontsize=20, font=2))),
-       width=40, height=60, units="cm")
 
 # Filter out genes not expressed in any sample
 keep.genes <- cv.df %>%
@@ -138,8 +116,8 @@ cv.df <- cv.df[cv.df$gene_short_name %in% keep.genes, ]
 cv.df$sample <- factor(cv.df$sample, levels=samples)
 
 #### Visualisation ####
-# Plot mean RPM distribution across different doses
-png(glue("./data/GSE139944/transcriptional_noise/meanRPM/sciPlex3_meanRPM_{cell.type}_{product}.png"),
+# Plot mean RPM distribution across different samples
+png(glue("./data/GSE139944/transcriptional_noise/meanRPM/sciPlex3_meanRPM_custom_{cell.type}_{product}_{d}.png"),
     width=3000, height=2000, res=300)
 ggplot(cv.df, aes(x=sample, y=log10(mean_rpm + 1))) +
   geom_violin() +
@@ -153,11 +131,11 @@ ggplot(cv.df, aes(x=sample, y=log10(mean_rpm + 1))) +
                in {cell.type} cells"))
 dev.off()
 
-# Plot coefficient of variation distribution across different doses
-png(glue("./data/GSE139944/transcriptional_noise/CV/sciPlex3_CV_{cell.type}_{product}.png"),
+# Plot coefficient of variation distribution across different samples
+png(glue("./data/GSE139944/transcriptional_noise/CV/sciPlex3_CV_custom_{cell.type}_{product}_{d}.png"),
     width=3000, height=2000, res=300)
 ggplot(cv.df, aes(x=sample, y=cv)) +
-  geom_boxplot() +
+  geom_violin() +
   xlab("") +
   ylab("CV") +
   scale_x_discrete(labels=paste0(samples, " (", ncells, ")")) +
@@ -167,36 +145,55 @@ dev.off()
 
 # Plot CV vs. CV of product_dose vs. vehicle
 cv.cv.plot.list <- list()
-for (i in 1:length(d)) {
-  cv.cv <- data.frame(cv.df[cv.df$sample == "Vehicle_0", "cv"],
-                      cv.df[cv.df$sample == paste0(product, "_", d[i]), "cv"],
-                      cv.df[cv.df$sample == "Vehicle_0", "gene_short_name"])
-  names(cv.cv) <- c("vehicle_cv", "treatment_cv", "gene_short_name")
+
+cv.diff.thresh <- 1.5
+rpm.diff.thresh <- 0.1
+
+for (i in 1:length(vehicles)) {
+  cv.cv <- data.frame(cv.df[cv.df$sample == vehicles[i], "cv"],
+                      cv.df[cv.df$sample == paste0(product, "_", d), "cv"],
+                      cv.df[cv.df$sample == vehicles[i], "mean_rpm"],
+                      cv.df[cv.df$sample == paste0(product, "_", d), "mean_rpm"],
+                      cv.df[cv.df$sample == vehicles[i], "gene_short_name"])
+  names(cv.cv) <- c("vehicle_cv", "treatment_cv", "vehicle_rpm", "treatment_rpm","gene_short_name")
   
-  cv.cv$direction <- ifelse(cv.cv$treatment_cv > cv.cv$vehicle_cv, "UP", "DOWN")
+  cv.cv$cv_diff <- cv.cv$treatment_cv / cv.cv$vehicle_cv
+  cv.cv$cv_direction <- ifelse(cv.cv$treatment_cv > cv.cv$vehicle_cv, "UP", "DOWN")
+  cv.cv$rpm_diff <- (cv.cv$treatment_rpm - cv.cv$vehicle_rpm) / cv.cv$vehicle_rpm
   
-  cv.cv.plot <- cv.cv %>% drop_na(vehicle_cv, treatment_cv) %>%
+  cv.cv <- cv.cv %>% 
+    mutate(label=ifelse((cv_diff > cv.diff.thresh | cv_diff < 1 / cv.diff.thresh) & abs(rpm_diff) < rpm.diff.thresh, 
+                        gene_short_name, ""))
+  cv.cv <- drop_na(cv.cv, vehicle_cv, treatment_cv)
+  
+  cv.cv.plot <- cv.cv %>%
     ggplot(aes(x=log2(vehicle_cv), y=log2(treatment_cv))) +
     geom_abline(intercept=0, 
                 slope=1,
                 linetype="dashed", size=0.5, color="gray") +
     geom_hline(yintercept=0) +
     geom_vline(xintercept=0) +
-    geom_point(aes(fill=direction),
+    geom_point(aes(fill=cv_direction),
                colour="black", pch=21) +
-    xlab("log2(CV (Vehicle_0))") + 
-    ylab(glue("log2(CV ({product}_{d[i]}))")) +
-    labs(title=glue("{product}_{d[i]} (nCells={ncells[[paste0(cell.type, '_', product, '_', d[i])]]}) vs. Vehicle_0 (nCells={ncells[[paste0(cell.type, '_Vehicle_0')]]})"),
-         subtitle=glue("N={cv.cv %>% drop_na(vehicle_cv, treatment_cv) %>% nrow()}, nUP={cv.cv %>% drop_na(vehicle_cv, treatment_cv) %>% filter(direction == 'UP') %>% nrow()}, nDOWN={cv.cv %>% drop_na(vehicle_cv, treatment_cv) %>% filter(direction == 'DOWN') %>% nrow()}"),
-         fill="Direction")
+    geom_label_repel(data=cv.cv,
+                    aes(label=label),
+                    size=3, segment.alpha=0.5, fill="white",
+                    box.padding=0.25,
+                    force=5,
+                    max.overlaps=Inf) +
+    xlab(glue("log2(CV ({vehicles[i]}))")) + 
+    ylab(glue("log2(CV ({product}_{d}))")) +
+    labs(title=glue("{product}_{d} (nCells={ncells[[paste0(cell.type, '_', product, '_', d)]]}) vs. {vehicles[i]} (nCells={ncells[[paste0(cell.type, '_', vehicles[i])]]})"),
+         subtitle=glue("N={cv.cv %>% drop_na(vehicle_cv, treatment_cv) %>% nrow()}, nUP={cv.cv %>% drop_na(vehicle_cv, treatment_cv) %>% filter(cv_direction == 'UP') %>% nrow()}, nDOWN={cv.cv %>% drop_na(vehicle_cv, treatment_cv) %>% filter(cv_direction == 'DOWN') %>% nrow()}
+                       {cv.cv %>% .$label %>% .[!is.na(.) & . != ''] %>% length()} genes with CV fold-change > {cv.diff.thresh} and RPM % difference < {rpm.diff.thresh * 100}%"),
+         fill="CV direction")
   
   cv.cv.plot.list[[i]] <- cv.cv.plot
 }
-ggsave(glue("./data/GSE139944/transcriptional_noise/CVvsCV/sciPlex3_CVvsCV_{cell.type}_{product}.png"),
+ggsave(glue("./data/GSE139944/transcriptional_noise/CVvsCV/sciPlex3_CVvsCV_custom_{cell.type}_{product}_{d}.png"),
        grid.arrange(grobs=cv.cv.plot.list, 
-                    ncol=2, nrow=2,
+                    ncol=1, nrow=3,
                     top=textGrob(glue("Coefficient of variation (CV) of protein coding genes
-                                      in {cell.type} cells for {product} vs. Vehicle across different doses"),
+                                      in {cell.type} cells for {product}_{d} vs. Vehicle (Nrep={nrep.vehicle})"),
                                  gp=gpar(fontsize=20, font=2))),
-       width=60, height=40, units="cm")
-
+       width=30, height=90, units="cm")

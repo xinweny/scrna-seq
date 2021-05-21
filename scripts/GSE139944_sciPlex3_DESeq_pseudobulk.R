@@ -44,8 +44,8 @@ inhibitors <- c("Luminespib", "Alvespimycin", "Tanespimycin",
                 "Trichostatin A", "Belinostat", "Mocetinostat")
 
 #### Load data ####
-cds <- readRDS("./GSE139944/data/GSM4150378_sciPlex3_cds_all_cells.RDS")
-col.data <- read.csv("./GSE139944/data/GSM4150378_sciPlex3_pData.txt", 
+cds <- readRDS("./data/GSE139944/data/GSM4150378_sciPlex3_cds_all_cells.RDS")
+col.data <- read.csv("./data/GSE139944/data/GSM4150378_sciPlex3_pData.txt", 
                      sep=" ", quote='"')
 
 # Format sample names
@@ -56,7 +56,7 @@ col.data$cell_product_dose_rep <- paste0(col.data$cell_type, "_",
 
 #### Pre-filtering ####
 # Keep valid cells
-col.data <- col.data[scan("./GSE139944/data/sciPlex3_valid_cells.tsv", character(), quote=""), ]
+col.data <- col.data[scan("./data/GSE139944/data/sciPlex3_valid_cells.tsv", character(), quote=""), ]
 
 # Filter cell metadata for selected inhibitors
 filt.col.data <- rbind(col.data[col.data$vehicle, ], 
@@ -149,7 +149,7 @@ for (i in 1:length(doses)) {
   nDown <- nrow(filter(as.data.frame(res), padj < alpha & log2FoldChange < 0))
   
   # Plot and save MA plot
-  png(glue("./GSE139944/deseq/MAplot/sciPlex3_MAplot_{cell.type}_{treatment}_{doses[i]}_vs_Vehicle_0.png"))
+  png(glue("./data/GSE139944/deseq/MAplot/sciPlex3_MAplot_{cell.type}_{treatment}_{doses[i]}_vs_Vehicle_0.png"))
   DESeq2::plotMA(res, 
                  main=glue("{cell.type} {treatment}_{doses[i]} vs. Vehicle_0
           n={nUp + nDown}, UP={nUp}, DOWN={nDown}
@@ -161,6 +161,6 @@ for (i in 1:length(doses)) {
   res$geneSymbol <- filt.gene.data[match(rownames(res), rownames(filt.gene.data)), "gene_short_name"]
   de.genes <- res %>% arrange(padj, desc(log2FoldChange))
   write.table(de.genes,
-              file=glue("./GSE139944/deseq/DEGtable/sciPlex3_DESeq_{cell.type}_{treatment}_{doses[i]}_vs_Vehicle_0.txt"),
+              file=glue("./data/GSE139944/deseq/DEGtable/sciPlex3_DESeq_{cell.type}_{treatment}_{doses[i]}_vs_Vehicle_0.txt"),
               row.names=TRUE, col.names=TRUE, sep="\t", quote=FALSE) 
 }

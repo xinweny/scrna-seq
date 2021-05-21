@@ -8,10 +8,10 @@ library(ggplot2)
 setwd("~/mrc/project/scrna-seq")
 
 #### Load data ####
-cds <- readRDS(glue("./GSE139944/data/GSM4150378_sciPlex3_cds_all_cells.RDS"))
-col.data <- read.csv("./GSE139944/data/GSM4150378_sciPlex3_pData.txt", 
+cds <- readRDS(glue("./data/GSE139944/data/GSM4150378_sciPlex3_cds_all_cells.RDS"))
+col.data <- read.csv("./data/GSE139944/data/GSM4150378_sciPlex3_pData.txt", 
                      sep=" ", quote='"')
-proteo.list <- read.csv("./GSE139944/data/proteostasis_gene_list_16_03_21_NON_CORE0_CORE1.csv",
+proteo.list <- read.csv("./data/GSE139944/data/proteostasis_gene_list_16_03_21_NON_CORE0_CORE1.csv",
                         sep="\t")
 
 #### Parameters ####
@@ -20,6 +20,7 @@ treatments <- c("Mocetinostat")
 # HSP90i - Luminespib, Alvespimycin, Tanespimycin
 # HDACi - Abexinostat, Tubastatin A, Divalproex Sodium, Sodium Phenylbutyrate, Dacinostat, Droxinostat, Tucidinostat, PCI-34051, Resminostat, Panobinostat, Trichostatin A, Quisinostat, MC1568, Belinostat, Mocetinostat, ITSA-1, TMP195, Givinostat, Entinostat, M344, Tacedinaline, AR-42, Pracinostat
 doses <- c(10, 100, 1000, 10000) # 10, 100, 1000, 10000
+use.genes <- c()
 
 include.vehicle <- FALSE # TRUE or FALSE
 preprocess.method <- "PCA" # PCA or LSI
@@ -45,7 +46,7 @@ col.data$cell_product_dose <- paste0(col.data$cell_product_dose, " (", col.data$
 
 #### Filtering ####
 # Keep valid cells
-col.data <- col.data[scan("./GSE139944/data/sciPlex3_valid_cells.tsv", character(), quote=""), ]
+col.data <- col.data[scan("./data/GSE139944/data/sciPlex3_valid_cells.tsv", character(), quote=""), ]
 
 # Get list of CORE proteostasis genes for human/mouse
 proteo.genes <- proteo.list[proteo.list$CORE == "CORE", c("Human_gene_ID")]
@@ -65,10 +66,18 @@ filt.cds <- new_cell_data_set(expression_data=filt.counts,
                               gene_metadata=fData(cds)[grep("ENSG", rownames(fData(cds))), ]) 
 
 #### Normalisation and pre-processing ####
-filt.cds <- preprocess_cds(filt.cds,
-                           method=preprocess.method,
-                           norm_method="log",
-                           pseudo_count=1)
+if (length(use.genes) > 0) {
+  filt.cds <- preprocess_cds(filt.cds,
+                             method=preprocess.method,
+                             use_genes=use.genes,
+                             norm_method="log",
+                             pseudo_count=1)
+} else {
+  filt.cds <- preprocess_cds(filt.cds,
+                             method=preprocess.method,
+                             norm_method="log",
+                             pseudo_count=1)
+}
 
 #### Clustering ####
 # Reduce dimensions using UMAP
@@ -91,7 +100,7 @@ sample.metadata <- data.frame(row.names=agg.samples,
                               n_cells=as.vector(cell.freq[match(agg.samples, names(cell.freq))]))
 
 # Plot and save UMAP
-png(file=glue("./GSE139944/umap/sciPlex3_UMAP_{paste(cells, sep='-', collapse='-')}_{paste(treatments[!treatments %in% c('Vehicle')], sep='-', collapse='-')}{if (include.vehicle) '-Vehicle' else ''}.png"), 
+png(file=glue("./data/GSE139944/UMAP/sciPlex3_UMAP_{paste(cells, sep='-', collapse='-')}_{paste(treatments[!treatments %in% c('Vehicle')], sep='-', collapse='-')}{if (include.vehicle) '-Vehicle' else ''}.png"), 
     width=3000, height=2000, res=300)
 plot_cells(filt.cds,
            color_cells_by="cell_product_dose",
