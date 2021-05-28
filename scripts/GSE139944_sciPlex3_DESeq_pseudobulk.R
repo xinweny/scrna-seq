@@ -35,6 +35,16 @@ add_ensembl_symbol <- function (table) {
   return(newTable)
 }
 
+format_condition <- function (colnames) {
+  replace <- c("_[0-9]*$", "_rep[0-9]*$", "^GSM[0-9]+_", "^[0-9]+_")
+  
+  for (r in replace) {
+    colnames <- gsub(r, "", colnames)
+  }
+  
+  return(colnames)
+}
+
 #### Config ####
 # Set working directory
 setwd("~/mrc/project/scrna-seq")
@@ -78,12 +88,8 @@ filt.gene.data <- fData(cds)[grep("ENSG", rownames(fData(cds))), ]
 rownames(filt.counts) <- filt.gene.data$id
 rownames(filt.gene.data) <- filt.gene.data$id
 
-filt.cds <- new_cell_data_set(filt.counts,
-                              cell_metadata=filt.col.data[match(colnames(filt.counts), rownames(filt.col.data)), ],
-                              gene_metadata=filt.gene.data) 
-
 # Create Single Cell Experiment object
-sce <- SingleCellExperiment(assays=list(counts=counts(filt.cds)),
+sce <- SingleCellExperiment(assays=list(counts=filt.counts),
                             colData=filt.col.data)
 
 #### QC and filtering ####
@@ -130,7 +136,8 @@ for (i in 1:length(doses)) {
   
   # Create DESeq2 object
   deseq.coldata <- data.frame(row.names=colnames(filt.pb),
-                              condition=c(rep("Vehicle_0", 2), rep(paste0(treatment, "_", doses[i]), 2)))
+                              condition=c(rep("Vehicle_0", 2), 
+                                          rep(paste0(treatment, "_", doses[i]), 2)))
   
   dds <- DESeqDataSetFromMatrix(countData=filt.pb,
                                 colData=deseq.coldata,
